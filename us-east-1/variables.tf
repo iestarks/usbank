@@ -5,23 +5,53 @@ variable "env" {
   default     = "stage"
 }
 
+
+variable "create_lc" {
+  description = "Whether to create launch configuration"
+  type        = bool
+  default     = true
+}
 variable "name" {
   description = "Creates a unique name beginning with the specified prefix"
   type        = string
   default = "usbank_east-1_"
 }
 
+variable "asgname" {
+  description = "Creates a unique name beginning with the specified prefix"
+  type        = string
+  default = "usbank-asg"
+}
+
+variable "launch_config_name" {
+  description = "Creates a launch configuration  name beginning with the specified prefix"
+  type        = string
+  default = "usbank-launchconfig"
+}
+
 # Autoscaling group
 variable "max_size" {
   description = "The maximum size of the auto scale group"
   type        = string
-  default = "6"
+  default = "4"
 }
+variable "image_id" {
+  description = "The EC2 image ID to launch"
+  type        = string
+  default     = "ami-0be2609ba883822ec"
+}
+
+variable "wait_for_capacity_timeout" {
+  description = "A maximum duration that Terraform should wait for ASG instances to be healthy before timing out. (See also Waiting for Capacity below.) Setting this to '0' causes Terraform to skip all Capacity Waiting behavior."
+  type        = string
+  default     = "10m"
+}
+
 
 variable "min_size" {
   description = "The minimum size of the auto scale group"
   type        = string
-  default = "2"
+  default = "0"
 }
 
 variable "desired_capacity" {
@@ -59,7 +89,7 @@ variable "cidr" {
 variable "ingress_cidr_blocks" {
   description = "List of IPv4 CIDR ranges to use on all ingress rules"
   type        = list(string)
-  default     = []
+  default     = ["10.60.0.0/16"]
 }
 
 variable "public_subnets" {
@@ -100,4 +130,93 @@ variable "health_check_type" {
   description = "Controls how health checking is done. Values are - EC2 and ELB"
   type        = string
   default =  "ELB"
+}
+
+variable "instance_id" {
+  description = "The EC2 instance ID to launch"
+  type        = string
+  default     = ""
+}
+
+
+variable "subnets" {
+  description = "The name of initial lifecycle hook"
+  type        = string
+  default     = ""
+}
+
+variable "instance_port" {
+  description = "The instance_port setting"
+  type        = string
+  default     = "80"
+}
+
+variable "number_of_instances" {
+  description = "Number of instances to attach to ELB"
+  type        = number
+  default     = 4
+}
+
+
+variable "instance_type" {
+  description = "The instance type"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "instance_protocol" {
+  description = "The instance protocol setting"
+  type        = string
+  default     = "HTTP"
+}
+
+variable "lb_port" {
+  description = "The load balancer port setting"
+  type        = string
+  default     = "80"
+}
+
+variable "lb_protocol" {
+  description = "The load balancer port setting"
+  type        = string
+  default     = "80"
+}
+
+
+variable "interval" {
+  description = "The load balancer port setting"
+  type        = string
+  default     = "30"
+}
+
+variable "healthy_threshold" {
+  description = "The load balancer port setting"
+  type        = string
+  default     = "2"
+}
+
+variable "unhealthy_threshold" {
+  description = "The unhealthy_thresholdsetting"
+  type        = string
+  default     = "2"
+}
+variable "target" {
+  description = "The unhealthy_thresholdsetting"
+  type        = string
+  default     = "HTTP:80/"
+}
+
+
+
+variable "timeout" {
+  description = "The lb timeout setting"
+  type        = string
+  default     = "5"
+}
+
+
+variable "owner" {
+  description = "The owner"
+  type        = string
+  default     = "user"
 }
