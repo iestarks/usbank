@@ -11,11 +11,25 @@ variable "create_lc" {
   type        = bool
   default     = true
 }
+
+variable "listener" {
+  description = "Whether to listen internally or externally at the lb"
+  type        = bool
+  default     = false
+}
+
 variable "name" {
   description = "Creates a unique name beginning with the specified prefix"
   type        = string
   default = "usbank_east-1_"
 }
+
+variable "elb-sg-tag" {
+  description = "Creates a unique name beginning with the specified prefix"
+  type        = string
+  default = ""
+}
+
 
 variable "asgname" {
   description = "Creates a unique name beginning with the specified prefix"
@@ -23,10 +37,11 @@ variable "asgname" {
   default = "usbank-asg"
 }
 
-variable "launch_config_name" {
-  description = "Creates a launch configuration  name beginning with the specified prefix"
+
+variable "launch_configuration" {
+  description = "The name of the launch configuration to use (if it is created outside of this module)"
   type        = string
-  default = "usbank-launchconfig"
+  default     = ""
 }
 
 # Autoscaling group
@@ -65,6 +80,7 @@ variable "vpc_zone_identifier" {
   type        = list(string)
   default     = ["subnet-00d5e34f04ac9f37e","subnet-00bb62c23a7649dda"]
 }
+
 
 
 variable "vpc_id" {
@@ -114,11 +130,11 @@ variable "database_subnets" {
 #   type        = list(string)
 #   default     = ["subnet-00d5e34f04ac9f37e","subnet-00bb62c23a7649dda"]
 # }
-variable "security_groups" {
-  description = "A list of security group IDs to assign to the launch configuration"
-  type        = list(string)
-  default     = ["sg-0e5b9c66b637fde20","sg-0a26db02d72db4450"]
-}
+# variable "security_groups" {
+#   description = "A list of security group IDs to assign to the launch configuration"
+#   type        = list(string)
+#   #default     = ["sg-0e5b9c66b637fde20","sg-0a26db02d72db4450"]
+# }
 
 variable "ingress_with_cidr_blocks" {
   description = "List of ingress rules to create where 'cidr_blocks' is used"
