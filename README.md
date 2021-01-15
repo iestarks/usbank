@@ -10,6 +10,7 @@
 # 6. ALL EC2s in ASG are attached to ELB
 # 7. S3 Bucket with VPC folder for VPC state file
 # 8. S3 Bucket with compute folder for IAC state file
+# 9. S3 Bucket with elb folder for Elb log files 
 ********************************************************************************************
 
 <img src="Usbank_poc.jpeg">
