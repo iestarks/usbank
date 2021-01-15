@@ -7,23 +7,20 @@
 # Security groups for MySQL
 ###########################
 module "mysql_security_group" {
-  #source  = "terraform-aws-modules/security-group/aws//modules/mysql"
-  source  = "git@github.com:iestarks/terraform-aws-security-group.git"
-  name = var.name
+  source  = "terraform-aws-modules/security-group/aws//modules/mysql"
+ # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
+  name = var.mysql_name
   vpc_id = var.vpc_id
   ingress_cidr_blocks = var.ingress_cidr_blocks
 }
 
+
+
 module "elb_security_group" {
-  source  = "git@github.com:iestarks/terraform-aws-security-group.git"
+  source  = "./modules/terraform-aws-security-group/modules/http-80/"
   vpc_id = data.aws_vpc.this.id
-  name = var.name
-#   tags = merge(
-#     {
-#       "Name" = format("%s", var.name)
-#     },
-#     var.elb-sg-tag,
-#   )
+  name = var.elbsgname
+  ingress_rules = var.ingress_rules 
 }
 
 
@@ -38,75 +35,43 @@ data "aws_vpc" "this" {
   }
 }
 
+
+
 #########Subnet data from VPC
 
 data "aws_subnet_ids" "all" {
   vpc_id = data.aws_vpc.this.id
+   filter {
+    name   = "tag:10.60.3.0/24"
+    values = ["az2-pri-subnet-3"] # insert value here
+  }
 }
 
-######Security Group
+# ######App Servers Security Group
 data "aws_security_group" "this" {
   vpc_id = data.aws_vpc.this.id
-  name   = "usbank-app-sg"
-}
-
-data "aws_instances" "get_instances" {
-    filter {
-        name = "instance-type"
-        values = ["t2.micro"]
-    }
-
-filter {
-    name = "availability-zone"
-    #values = [data.aws_availability_zones.available.values]
-    values = var.azs
-}
-
-instance_state_names = ["running", "stopped"]
-}
-
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-
- tags = {
-    owners = var.owner
-    Environment = var.env
-    }
-  }
-
-#######Load Balancer Instances
-
-resource "aws_instance" "web" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-
-  tags = {
-    Name = "loadbalancer_instance"
-  }
+  name   = var.appsg
 }
 
 
 
+################################################################
+#ElB creation module
+######################################################################
+
+  #security_group = data.aws_security_group.elb_security_group.id
 
 module "elb_http" {
   source = "./modules/terraform-aws-elb/modules/elb/"
-   #security_groups = data.aws_security_group.this.id
-   subnets  = ["subnet-0e20da1368e759895","subnet-0362a51a955d46f09"]
+
+   security_groups = module.elb_security_group.this_security_group_name
+   subnets = data.aws_subnet_ids.all.ids
    internal   = var.listener
    vpc_id = data.aws_vpc.this.id
+   name = var.elbsgname
+   ingress_rules =  var.ingress_rules
+   #instances = ""
+
 
 listener = [
     {
@@ -127,22 +92,30 @@ listener = [
 
 
    health_check = {
-    target              = var.target
-    interval            = var.interval
-    healthy_threshold   = var.healthy_threshold
-    unhealthy_threshold = var.unhealthy_threshold
-    timeout             = var.timeout
+
+    healthy_threshold   = lookup(var.health_check, "healthy_threshold")
+    unhealthy_threshold = lookup(var.health_check, "unhealthy_threshold")
+    target              = lookup(var.health_check, "target")
+    interval            = lookup(var.health_check, "interval")
+    timeout             = lookup(var.health_check, "timeout")
   }
 
   access_logs = {
     bucket = "usbank-bucket"
+     interval      = 60
   }
 }
 
+module "elb_attachment"{
+  source = "./modules/terraform-aws-elb/modules/elb_attachment/"
+  number_of_instances = var.number_of_instances
+  instances = var.instances
+  #elb = data.elb_http.this.name
+  elb = var.elb_name
 
-module "usbank-autoscaling"{
-  source = "git@github.com:iestarks/terraform-aws-autoscaling.git"
 }
+
+
 
 
 
@@ -179,15 +152,9 @@ resource "aws_s3_bucket" "elb_logs" {
 POLICY
 }
 
-
-
-
-
-
-
-
-# # Create a new load balancer attachment
-# resource "aws_elb_attachment" "usbank_elb_attachment" {
-#   elb      = module.elb_http.id
-#   instance = aws_instance.web.id
-# }
+#########################################################################
+#Autoscaling Group Creation
+#########################################################################
+module "usbank-autoscaling"{
+  source = "git@github.com:iestarks/terraform-aws-autoscaling.git"
+}

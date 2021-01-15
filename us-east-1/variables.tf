@@ -5,6 +5,18 @@ variable "env" {
   default     = "stage"
 }
 
+variable "mysql_name" {
+  description = "The name of the MySQL Storage Group"
+  type        = string
+  default    ="mysql-sg"
+}
+
+
+variable "tags" {
+  description = "A mapping of tags to assign to security group"
+  type        = map(string)
+  default     = {}
+}
 
 variable "create_lc" {
   description = "Whether to create launch configuration"
@@ -18,10 +30,23 @@ variable "listener" {
   default     = false
 }
 
-variable "name" {
-  description = "Creates a unique name beginning with the specified prefix"
+variable "elbsgname" {
+  description = "ELB Security Group Name"
   type        = string
-  default = "usbank_east-1_"
+  default = "http-80-sg"
+}
+
+
+variable "appsg" {
+  description = "App server's  security group"
+  type        = string
+  default     = "usbank-app-sg"
+}
+
+variable "elb_name" {
+  description = "The name of the ELB"
+  type        = string
+  default     = "elb-usbank"
 }
 
 variable "elb-sg-tag" {
@@ -108,6 +133,17 @@ variable "ingress_cidr_blocks" {
   default     = ["10.60.0.0/16"]
 }
 
+
+variable "ingress_rules" {
+    type = list(object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks  = string
+      description = string
+    }))
+}
+
 variable "public_subnets" {
   description = "A list of public subnets inside the VPC"
   type        = list(string)
@@ -154,6 +190,13 @@ variable "instance_id" {
   default     = ""
 }
 
+variable "health_check" {
+  description = "A health check block"
+  type        = map(string)
+  default = {"target" = "HTTP:80/","interval" = "30","healthy_threshold" = "2","unhealthy_threshold" = "2","timeout" = "5"}
+}
+
+
 
 variable "subnets" {
   description = "The name of initial lifecycle hook"
@@ -171,6 +214,12 @@ variable "number_of_instances" {
   description = "Number of instances to attach to ELB"
   type        = number
   default     = 4
+}
+
+variable "instances" {
+  description = "instances to attach to ELB"
+  type        = list(string)
+  default     = []
 }
 
 
@@ -201,23 +250,23 @@ variable "lb_protocol" {
 
 variable "interval" {
   description = "The load balancer port setting"
-  type        = string
-  default     = "30"
+  type        = number
+  default     = 30
 }
 
 variable "healthy_threshold" {
   description = "The load balancer port setting"
-  type        = string
-  default     = "2"
+  type        = number
+  default     = 2
 }
 
 variable "unhealthy_threshold" {
   description = "The unhealthy_thresholdsetting"
-  type        = string
-  default     = "2"
+  type        = number
+  default     = 2
 }
 variable "target" {
-  description = "The unhealthy_thresholdsetting"
+  description = "target protocol"
   type        = string
   default     = "HTTP:80/"
 }
@@ -226,8 +275,8 @@ variable "target" {
 
 variable "timeout" {
   description = "The lb timeout setting"
-  type        = string
-  default     = "5"
+  type        = number
+  default     = 5
 }
 
 

@@ -36,3 +36,5 @@ terraform.rc./modules/terraform-aws-vpc/.terraform/providers/registry.terraform.
 ./us-east-1/.terraform/providers/registry.terraform.io/hashicorp/aws/3.23.0/darwin_amd64/terraform-provider-aws_v3.23.0_x5
 
 .terraform/
+
+.terraform.lock.hcl
