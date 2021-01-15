@@ -1,32 +1,11 @@
-##############################################################
-# Data sources to get security group details
-##############################################################
 
-
-###########################
-# Security groups for MySQL
-###########################
-module "mysql_security_group" {
-  source  = "terraform-aws-modules/security-group/aws//modules/mysql"
- # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
-  name = var.mysql_name
-  vpc_id = var.vpc_id
-  ingress_cidr_blocks = var.ingress_cidr_blocks
-}
-
-
-
-module "elb_security_group" {
-  source  = "./modules/terraform-aws-security-group/modules/http-80/"
-  vpc_id = data.aws_vpc.this.id
-  name = var.elbsgname
-  ingress_rules = var.ingress_rules 
-}
-
-
+********************************************************************************************
+# Beginining OF IAC FOR USBANK Autoscaling, across 2 AZs with  
+## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
+********************************************************************************************
 
 ##############################################################
-# Data sources to get VPC, subnets and security group details
+# Data sources to get VPC Details
 ##############################################################
 data "aws_vpc" "this" {
   filter {
@@ -36,8 +15,9 @@ data "aws_vpc" "this" {
 }
 
 
-
-#########Subnet data from VPC
+##############################################################
+# Data sources to get subnets 
+##############################################################
 
 data "aws_subnet_ids" "all" {
   vpc_id = data.aws_vpc.this.id
@@ -46,6 +26,9 @@ data "aws_subnet_ids" "all" {
     values = ["az2-pri-subnet-3"] # insert value here
   }
 }
+##############################################################
+# Data sources to get security group details
+##############################################################
 
 # ######App Servers Security Group
 data "aws_security_group" "this" {
@@ -53,13 +36,69 @@ data "aws_security_group" "this" {
   name   = var.appsg
 }
 
+#########################################################################################
+# Modules for SQL Security groups for MySQL
+#########################################################################################
+
+module "mysql_security_group" {
+  source  = "terraform-aws-modules/security-group/aws//modules/mysql"
+ # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
+  name = var.mysql_name
+  vpc_id = var.vpc_id
+  ingress_cidr_blocks = var.ingress_cidr_blocks
+}
+
+#########################################################################################
+# Modules for ELB Security groups for MySQL
+#########################################################################################
+
+module "elb_security_group" {
+  source  = "./modules/terraform-aws-security-group/modules/http-80/"
+  vpc_id = data.aws_vpc.this.id
+  name = var.elbsgname
+  ingress_rules = var.ingress_rules 
+}
+
+
+########################################################################################################################################
+##Give Bucket Permission and allow access for the ELB
+##################################################################################################################################################
+
+data "aws_elb_service_account" "main" {}
+
+resource "aws_s3_bucket" "elb_logs" {
+  bucket = "usbank-elb-bucket"
+  acl    = "private"
+
+  policy = <<POLICY
+{
+  "Id": "Policy",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::usbank-elb-bucket/AWSLogs/*",
+      "Principal": {
+        "AWS": [
+          "${data.aws_elb_service_account.main.arn}"
+        ]
+      }
+    }
+  ]
+}
+POLICY
+}
+
+
 
 
 ################################################################
 #ElB creation module
 ######################################################################
 
-  #security_group = data.aws_security_group.elb_security_group.id
 
 module "elb_http" {
   source = "./modules/terraform-aws-elb/modules/elb/"
@@ -115,46 +154,15 @@ module "elb_attachment"{
 
 }
 
-
-
-
-
-
-###############################################
-##Give Bucket Permission and allow access for the ELB
-#########################################################
-
-data "aws_elb_service_account" "main" {}
-
-resource "aws_s3_bucket" "elb_logs" {
-  bucket = "usbank-elb-bucket"
-  acl    = "private"
-
-  policy = <<POLICY
-{
-  "Id": "Policy",
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "s3:PutObject"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:s3:::usbank-elb-bucket/AWSLogs/*",
-      "Principal": {
-        "AWS": [
-          "${data.aws_elb_service_account.main.arn}"
-        ]
-      }
-    }
-  ]
-}
-POLICY
-}
-
-#########################################################################
+##################################################################################################################################################################
 #Autoscaling Group Creation
-#########################################################################
+##################################################################################################################################################################
 module "usbank-autoscaling"{
   source = "git@github.com:iestarks/terraform-aws-autoscaling.git"
 }
+##################################################################################################################################################################################
+
+##############################################################################################
+# END OF IAC FOR USBANK Autoscaling, across 2 AZs with  
+## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
+##############################################################################################
