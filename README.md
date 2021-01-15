@@ -12,4 +12,4 @@
 # 8. S3 Bucket with compute folder for IAC state file
 ********************************************************************************************
 
-<img src="">
+<img src="Usbank_poc.jpeg">
