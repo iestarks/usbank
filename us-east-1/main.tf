@@ -38,14 +38,19 @@ data "aws_subnet_ids" "all" {
 ##############################################################
 
 # ######App Servers Security Group
+# data "aws_security_group" "this" {
+#   vpc_id = data.aws_vpc.usbank_vpc.id
+#       #vpc_id = module.terraform-aws-vpc.name
+#   name   = var.elbsgname
+#   #  filter {
+#   #   name   = "tag:Name"
+#   #   values = ["http-80-sg"] # insert value here
+#   # }
+# }
+
 data "aws_security_group" "this" {
-  vpc_id = data.aws_vpc.usbank_vpc.id
-      #vpc_id = module.terraform-aws-vpc.name
+  vpc_id = data.aws_vpc.this.id
   name   = var.elbsgname
-  #  filter {
-  #   name   = "tag:Name"
-  #   values = ["http-80-sg"] # insert value here
-  # }
 }
 
 #########################################################################################
