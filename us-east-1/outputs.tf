@@ -1,3 +1,11 @@
+
+output "vpc_id" {
+  description = "The ID of the VPC"
+  #value       = concat(data.aws_vpc.usbank_vpc.*.id, [""])[0]
+  #value = module.terraform-aws-vpc.name
+  value = data.aws_vpc.usbank_vpc.id
+}
+
 output "this_autoscaling_group_id" {
   description = "The autoscaling group id"
   value       = module.usbank-autoscaling.this_autoscaling_group_id
@@ -6,6 +14,15 @@ output "this_autoscaling_group_id" {
 output "all" {
   description = "The subnets id"
   value       = data.aws_subnet_ids.all.ids
+}
+
+output "this_security_group_id" {
+  description = "The ID of the security group"
+  value = concat(
+ data.aws_security_group.this.*.id,
+    #module.terraform-aws-security-group.this_name_prefix.*.id,
+    [""],
+  )[0]
 }
 
 #  output "this_elb_name" {

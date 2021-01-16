@@ -1,30 +1,37 @@
 
-********************************************************************************************
+#********************************************************************************************
 # Beginining OF IAC FOR USBANK Autoscaling, across 2 AZs with  
 ## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
-********************************************************************************************
+#********************************************************************************************
+
+# module "terraform-aws-vpc" {
+# source = "./modules/terraform-aws-vpc/"
+# ingress_rules = var.ingress_rules
+# }
+
 
 ##############################################################
 # Data sources to get VPC Details
 ##############################################################
-data "aws_vpc" "this" {
-  filter {
-    name = "tag:Name"
-    values = ["bankus_east-2-vpc"]
-  }
+data "aws_vpc" "usbank_vpc" {
+  id = var.vpc_id
+  # filter {
+  #   name = "tag:Name"
+  #   values = [var.name]
+  # }
 }
-
 
 ##############################################################
 # Data sources to get subnets 
 ##############################################################
 
 data "aws_subnet_ids" "all" {
-  vpc_id = data.aws_vpc.this.id
-   filter {
-    name   = "tag:10.60.3.0/24"
-    values = ["az2-pri-subnet-3"] # insert value here
-  }
+  vpc_id = data.aws_vpc.usbank_vpc.id
+    #vpc_id = module.terraform-aws-vpc.name
+  #  filter {
+  #   name   = "tag:10.60.3.0/24"
+  #   values = ["az2-pri-subnet-3"] # insert value here
+  # }
 }
 ##############################################################
 # Data sources to get security group details
@@ -32,8 +39,13 @@ data "aws_subnet_ids" "all" {
 
 # ######App Servers Security Group
 data "aws_security_group" "this" {
-  vpc_id = data.aws_vpc.this.id
-  name   = var.appsg
+  vpc_id = data.aws_vpc.usbank_vpc.id
+      #vpc_id = module.terraform-aws-vpc.name
+  name   = var.elbsgname
+  #  filter {
+  #   name   = "tag:Name"
+  #   values = ["http-80-sg"] # insert value here
+  # }
 }
 
 #########################################################################################
@@ -41,20 +53,23 @@ data "aws_security_group" "this" {
 #########################################################################################
 
 module "mysql_security_group" {
-  source  = "terraform-aws-modules/security-group/aws//modules/mysql"
+  source  = "./modules/terraform-aws-security-group/modules/mysql/"
  # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
   name = var.mysql_name
-  vpc_id = var.vpc_id
-  ingress_cidr_blocks = var.ingress_cidr_blocks
+ vpc_id = data.aws_vpc.usbank_vpc.id
+   #  vpc_id = module.terraform-aws-vpc.name
+  #ingress_cidr_blocks = var.ingress_cidr_blocks
+  ingress_rules = var.ingress_rules
 }
 
 #########################################################################################
 # Modules for ELB Security groups for MySQL
 #########################################################################################
 
-module "elb_security_group" {
+module "terraform-aws-security-group" {
   source  = "./modules/terraform-aws-security-group/modules/http-80/"
-  vpc_id = data.aws_vpc.this.id
+ vpc_id = data.aws_vpc.usbank_vpc.id
+    # vpc_id = module.terraform-aws-vpc.name
   name = var.elbsgname
   ingress_rules = var.ingress_rules 
 }
@@ -103,13 +118,14 @@ POLICY
 module "elb_http" {
   source = "./modules/terraform-aws-elb/modules/elb/"
 
-   security_groups = module.elb_security_group.this_security_group_name
+   security_groups = data.aws_security_group.this.*.id
    subnets = data.aws_subnet_ids.all.ids
    internal   = var.listener
-   vpc_id = data.aws_vpc.this.id
+   vpc_id = data.aws_vpc.usbank_vpc.id
+      # vpc_id = module.terraform-aws-vpc.name
    name = var.elbsgname
    ingress_rules =  var.ingress_rules
-   #instances = ""
+
 
 
 listener = [
@@ -148,9 +164,8 @@ listener = [
 module "elb_attachment"{
   source = "./modules/terraform-aws-elb/modules/elb_attachment/"
   number_of_instances = var.number_of_instances
-  instances = var.instances
-  #elb = data.elb_http.this.name
-  elb = var.elb_name
+  #instances = element(var.instances, count.index)
+  instances = ["i-04e66754807605bd3","i-04e66754807605bd3"]
 
 }
 
@@ -158,13 +173,14 @@ module "elb_attachment"{
 #Autoscaling Group Creation
 ##################################################################################################################################################################
 module "usbank-autoscaling"{
-  source = "git@github.com:iestarks/terraform-aws-autoscaling.git"
+  source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
+  
 }
 ##################################################################################################################################################################################
 
-********************************************************************************************
+#********************************************************************************************
 
 # END OF IAC FOR USBANK Autoscaling, across 2 AZs with  
 ## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
 
-********************************************************************************************
+#********************************************************************************************

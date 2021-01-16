@@ -1,0 +1,7 @@
+data "aws_vpc" "this" {
+  id = var.vpc_id
+  filter {
+    name = "tag:Name"
+    values = [var.name]
+  }
+}

@@ -1,4 +1,10 @@
 
+variable "vpc_id" {
+  description = "Workspace area of the build"
+  type        = string
+  default     = "vpc-018de92b069abac0b"
+}
+
 variable "env" {
   description = "Workspace area of the build"
   type        = string
@@ -9,6 +15,12 @@ variable "mysql_name" {
   description = "The name of the MySQL Storage Group"
   type        = string
   default    ="mysql-sg"
+}
+
+variable "name" {
+  description = "Name to be used on all the resources as identifier"
+  type        = string
+  default     = "vpc-018de92b069abac0b"
 }
 
 
@@ -36,6 +48,12 @@ variable "elbsgname" {
   default = "http-80-sg"
 }
 
+variable "elbname" {
+  description = "ELB Security Group Name"
+  type        = string
+  default = "http-80-elb"
+}
+
 
 variable "appsg" {
   description = "App server's  security group"
@@ -43,11 +61,11 @@ variable "appsg" {
   default     = "usbank-app-sg"
 }
 
-variable "elb_name" {
-  description = "The name of the ELB"
-  type        = string
-  default     = "elb-usbank"
-}
+# variable "elb_name" {
+#   description = "The name of the ELB"
+#   type        = string
+#   default     = "elb-usbank"
+# }
 
 variable "elb-sg-tag" {
   description = "Creates a unique name beginning with the specified prefix"
@@ -107,12 +125,6 @@ variable "vpc_zone_identifier" {
 }
 
 
-
-variable "vpc_id" {
-  description = "ID of the VPC where to create security group"
-  type        = string
-  default = "vpc-018de92b069abac0b"
-}
 
 
 variable "azs" {
