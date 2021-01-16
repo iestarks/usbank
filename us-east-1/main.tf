@@ -32,7 +32,7 @@ data "aws_subnet_ids" "all" {
 
 data "aws_security_group" "this" {
   vpc_id = data.aws_vpc.this.id
-  name   = "usbank-app-sg"
+  name   = "http-80-sg"
 }
 
 
@@ -137,7 +137,7 @@ module "elb_http" {
   #number_of_instances = module.usbank-main-autoscaling.this_autoscaling_group_desired_capacity
   number_of_instances = var.number_of_instances
   
-  instances           = [module.usbank_asg.instance_ids]
+  instances           = [var.instance_id]
   #instances   = data.aws_instance.this.*.id
 
 
@@ -149,67 +149,67 @@ module "elb_http" {
 
 
 
-#####Predictive Scaling Plan
+# #####Predictive Scaling Plan
 
-#############################################################################
+# #############################################################################
 
-data "aws_launch_configuration" "this"{
-  #name = module.usbank-main-autoscaling.this_launch_configuration_id
-  name = ""
-}
+# data "aws_launch_configuration" "this"{
+#   #name = module.usbank-main-autoscaling.this_launch_configuration_id
+#   name = var.launch_config_name
+# }
 
-data "aws_availability_zones" "available" {}
+# data "aws_availability_zones" "available" {}
 
-resource "aws_autoscaling_group" "bankus_asg" {
-  name_prefix = "usbank_asg"
+# resource "aws_autoscaling_group" "bankus_asg" {
+#   name_prefix = "usbank_asg"
 
-  launch_configuration = data.aws_launch_configuration.this.name
-  availability_zones   = [data.aws_availability_zones.available.names[0]]
+#   launch_configuration = data.aws_launch_configuration.this.name
+#   availability_zones   = [data.aws_availability_zones.available.names[0]]
 
-  min_size = var.min_size
-  max_size = var.max_size
+#   min_size = var.min_size
+#   max_size = var.max_size
 
-  tags = [
-    {
-      key                 = "application"
-      value               = "example"
-      propagate_at_launch = true
-    },
-  ]
-}
+#   tags = [
+#     {
+#       key                 = "application"
+#       value               = "example"
+#       propagate_at_launch = true
+#     },
+#   ]
+# }
 
-resource "aws_autoscalingplans_scaling_plan" "example" {
-  name = "example-predictive-cost-optimization"
+# resource "aws_autoscalingplans_scaling_plan" "example" {
+#   name = "example-predictive-cost-optimization"
 
-  application_source {
-    tag_filter {
-      key    = "application"
-      values = ["example"]
-    }
-  }
+#   application_source {
+#     tag_filter {
+#       key    = "application"
+#       values = ["example"]
+#     }
+#   }
 
-  scaling_instruction {
-    disable_dynamic_scaling = true
+#   scaling_instruction {
+#     disable_dynamic_scaling = true
 
-    max_capacity       = var.max_size
-    min_capacity       = var.min_size
-    resource_id        = format("autoScalingGroup/%s", aws_autoscaling_group.bankus_asg.name)
-    scalable_dimension = "autoscaling:autoScalingGroup:DesiredCapacity"
-    service_namespace  = "autoscaling"
+#     max_capacity       = var.max_size
+#     min_capacity       = var.min_size
+#     resource_id        = format("autoScalingGroup/%s", aws_autoscaling_group.bankus_asg.name)
+#     scalable_dimension = "autoscaling:autoScalingGroup:DesiredCapacity"
+#     service_namespace  = "autoscaling"
 
-    target_tracking_configuration {
-      predefined_scaling_metric_specification {
-        predefined_scaling_metric_type = "ASGAverageCPUUtilization"
-      }
+#     target_tracking_configuration {
+#       predefined_scaling_metric_specification {
+#         predefined_scaling_metric_type = "ASGAverageCPUUtilization"
+#       }
 
-      target_value = 70
-    }
+#       target_value = 70
+#     }
 
-    predictive_scaling_max_capacity_behavior = "SetForecastCapacityToMaxCapacity"
-    predictive_scaling_mode                  = "ForecastAndScale"
+#     predictive_scaling_max_capacity_behavior = "SetForecastCapacityToMaxCapacity"
+#     predictive_scaling_mode                  = "ForecastAndScale"
 
-    predefined_load_metric_specification {
-      predefined_load_metric_type = "ASGTotalCPUUtilization"
-    }
-  }
-}
+#     predefined_load_metric_specification {
+#       predefined_load_metric_type = "ASGTotalCPUUtilization"
+#     }
+#   }
+# }

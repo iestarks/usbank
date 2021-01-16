@@ -135,7 +135,7 @@ variable "health_check_type" {
 variable "instance_id" {
   description = "The EC2 instance ID to launch"
   type        = string
-  default     = ""
+  default   = "i-0c273149c7333a95e"
 }
 
 
