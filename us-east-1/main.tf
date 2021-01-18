@@ -14,11 +14,10 @@
 # Data sources to get VPC Details
 ##############################################################
 data "aws_vpc" "usbank_vpc" {
-  id = var.vpc_id
-  # filter {
-  #   name = "tag:Name"
-  #   values = [var.name]
-  # }
+  filter {
+    name = "tag:Name"
+    values = [var.vpcname]
+  }
 }
 
 ##############################################################
@@ -28,10 +27,10 @@ data "aws_vpc" "usbank_vpc" {
 data "aws_subnet_ids" "all" {
   vpc_id = data.aws_vpc.usbank_vpc.id
     #vpc_id = module.terraform-aws-vpc.name
-  #  filter {
-  #   name   = "tag:10.60.3.0/24"
-  #   values = ["az2-pri-subnet-3"] # insert value here
-  # }
+   filter {
+    name   = "tag:10.60.3.0/24"
+    values = ["az2-pri-subnet-3"] # insert value here
+  }
 }
 ##############################################################
 # Data sources to get security group details
@@ -48,36 +47,37 @@ data "aws_subnet_ids" "all" {
 #   # }
 # }
 
-data "aws_security_group" "this" {
-  vpc_id = data.aws_vpc.this.id
-  name   = var.elbsgname
-}
+# data "aws_security_group" "this" {
+#   vpc_id = data.aws_vpc.usbank_vpc.id
+#   name   = var.elbsgname
+# }
 
 #########################################################################################
 # Modules for SQL Security groups for MySQL
 #########################################################################################
 
-module "mysql_security_group" {
-  source  = "./modules/terraform-aws-security-group/modules/mysql/"
- # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
-  name = var.mysql_name
- vpc_id = data.aws_vpc.usbank_vpc.id
-   #  vpc_id = module.terraform-aws-vpc.name
-  #ingress_cidr_blocks = var.ingress_cidr_blocks
-  ingress_rules = var.ingress_rules
-}
+# module "mysql_security_group" {
+#   source  = "./modules/terraform-aws-security-group/modules/mysql/"
+#  # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
+#   name = var.mysql_name
+#  vpc_id = data.aws_vpc.usbank_vpc.id
+#    #  vpc_id = module.terraform-aws-vpc.name
+#   #ingress_cidr_blocks = var.ingress_cidr_blocks
+#   ingress_rules = var.ingress_rules
+
+# }
 
 #########################################################################################
 # Modules for ELB Security groups for MySQL
 #########################################################################################
 
-module "terraform-aws-security-group" {
-  source  = "./modules/terraform-aws-security-group/modules/http-80/"
- vpc_id = data.aws_vpc.usbank_vpc.id
-    # vpc_id = module.terraform-aws-vpc.name
-  name = var.elbsgname
-  ingress_rules = var.ingress_rules 
-}
+# module "terraform-aws-security-group" {
+#   source  = "./modules/terraform-aws-security-group/modules/http-80/"
+#  vpc_id = data.aws_vpc.usbank_vpc.id
+#     # vpc_id = module.terraform-aws-vpc.name
+#   name = var.elbsgname
+#   ingress_rules = var.ingress_rules 
+# }
 
 
 ########################################################################################################################################
@@ -123,13 +123,14 @@ POLICY
 module "elb_http" {
   source = "./modules/terraform-aws-elb/modules/elb/"
 
-   security_groups = data.aws_security_group.this.*.id
+   #security_groups = data.aws_security_group.this.*.id
+   security_groups =  data.aws_vpc.usbank_vpc.*.id
    subnets = data.aws_subnet_ids.all.ids
    internal   = var.listener
    vpc_id = data.aws_vpc.usbank_vpc.id
       # vpc_id = module.terraform-aws-vpc.name
    name = var.elbsgname
-   ingress_rules =  var.ingress_rules
+   ingress_rules =  var.elb_ingress_rules
 
 
 
@@ -181,6 +182,29 @@ module "usbank-autoscaling"{
   source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
   
 }
+
+
+#################################################################################################################################################################
+#MySQL DB Creation
+##################################################################################################################################################################
+
+
+module "db" {
+source = "./modules/terraform-aws-rds/"
+engine_version = var.engine_version
+backup_window = var.backup_window
+username = var.username
+port =  var.port
+password =  var.password
+instance_class = var.instance_class 
+engine =  var.engine 
+maintenance_window = var.maintenance_window
+identifier =var.identifier
+vpc_security_group_ids = [data.aws_vpc.usbank_vpc.id]
+allocated_storage = var.allocated_storage
+}
+
+
 ##################################################################################################################################################################################
 
 #********************************************************************************************

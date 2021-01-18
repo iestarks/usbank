@@ -16,14 +16,14 @@ output "all" {
   value       = data.aws_subnet_ids.all.ids
 }
 
-output "this_security_group_id" {
-  description = "The ID of the security group"
-  value = concat(
- data.aws_security_group.this.*.id,
-    #module.terraform-aws-security-group.this_name_prefix.*.id,
-    [""],
-  )[0]
-}
+# output "this_security_group_id" {
+#   description = "The ID of the security group"
+#   value = concat(
+#  data.aws_security_group.this.*.id,
+#     #module.terraform-aws-security-group.this_name_prefix.*.id,
+#     [""],
+#   )[0]
+# }
 
 #  output "this_elb_name" {
 #    description = "The name of the ELB"
