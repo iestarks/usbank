@@ -1,9 +1,8 @@
 
-variable "vpc_id" {
-  description = "Workspace area of the build"
-  type        = string
-  default     = "vpc-07516fec2f56dbb67"
-}
+# variable "vpc_id" {
+#   description = "Workspace area of the build"
+#   type        = string
+# }
 
 variable "env" {
   description = "Workspace area of the build"
@@ -42,14 +41,9 @@ variable "listener" {
   default     = false
 }
 
-variable "elbsgname" {
-  description = "ELB Security Group Name"
-  type        = string
-  default = "http-80-sg"
-}
 
 variable "elbname" {
-  description = "ELB Security Group Name"
+  description = "ELB  Name"
   type        = string
   default = "http-80-elb"
 }
@@ -121,7 +115,7 @@ variable "desired_capacity" {
 variable "vpc_zone_identifier" {
   description = "A list of subnet IDs to launch resources in"
   type        = list(string)
-  default     = ["subnet-00d5e34f04ac9f37e","subnet-00bb62c23a7649dda"]
+  default     = []
 }
 
 
@@ -130,7 +124,7 @@ variable "vpc_zone_identifier" {
 variable "azs" {
   description = "A list of availability zones names or ids in the region"
   type        = list(string)
-  default     = ["us-east-1a","us-east-1c"]
+  default     = []
 }
 
 variable "cidr" {

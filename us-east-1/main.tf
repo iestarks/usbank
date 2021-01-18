@@ -4,11 +4,11 @@
 ## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
 #********************************************************************************************
 
+
+
 # module "terraform-aws-vpc" {
 # source = "./modules/terraform-aws-vpc/"
-# ingress_rules = var.ingress_rules
 # }
-
 
 ##############################################################
 # Data sources to get VPC Details
@@ -32,53 +32,17 @@ data "aws_subnet_ids" "all" {
     values = ["az2-pri-subnet-3"] # insert value here
   }
 }
-##############################################################
-# Data sources to get security group details
-##############################################################
 
-# ######App Servers Security Group
-# data "aws_security_group" "this" {
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#       #vpc_id = module.terraform-aws-vpc.name
-#   name   = var.elbsgname
-#   #  filter {
-#   #   name   = "tag:Name"
-#   #   values = ["http-80-sg"] # insert value here
-#   # }
-# }
-
-# data "aws_security_group" "this" {
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#   name   = var.elbsgname
-# }
-
-#########################################################################################
-# Modules for SQL Security groups for MySQL
-#########################################################################################
-
-# module "mysql_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/mysql/"
-#  # source  = "git@github.com:iestarks/terraform-aws-security-group.git"
-#   name = var.mysql_name
-#  vpc_id = data.aws_vpc.usbank_vpc.id
-#    #  vpc_id = module.terraform-aws-vpc.name
-#   #ingress_cidr_blocks = var.ingress_cidr_blocks
-#   ingress_rules = var.ingress_rules
-
-# }
-
-#########################################################################################
-# Modules for ELB Security groups for MySQL
-#########################################################################################
-
-# module "terraform-aws-security-group" {
-#   source  = "./modules/terraform-aws-security-group/modules/http-80/"
-#  vpc_id = data.aws_vpc.usbank_vpc.id
-#     # vpc_id = module.terraform-aws-vpc.name
-#   name = var.elbsgname
-#   ingress_rules = var.ingress_rules 
-# }
-
+# ######ELB Servers Security Group
+data "aws_security_group" "this" {
+  vpc_id = data.aws_vpc.usbank_vpc.id
+  name   = var.appsg
+   filter {
+    name   = "tag:Name"
+    values = [var.appsg]
+  }
+}
+#############################################################
 
 ########################################################################################################################################
 ##Give Bucket Permission and allow access for the ELB
@@ -113,8 +77,6 @@ POLICY
 }
 
 
-
-
 ################################################################
 #ElB creation module
 ######################################################################
@@ -123,13 +85,13 @@ POLICY
 module "elb_http" {
   source = "./modules/terraform-aws-elb/modules/elb/"
 
-   #security_groups = data.aws_security_group.this.*.id
-   security_groups =  data.aws_vpc.usbank_vpc.*.id
+   security_groups = [data.aws_security_group.this.id]
+   #security_groups =  data.aws_vpc.usbank_vpc.id
    subnets = data.aws_subnet_ids.all.ids
    internal   = var.listener
    vpc_id = data.aws_vpc.usbank_vpc.id
       # vpc_id = module.terraform-aws-vpc.name
-   name = var.elbsgname
+   name = var.elbname
    ingress_rules =  var.elb_ingress_rules
 
 
@@ -171,18 +133,22 @@ module "elb_attachment"{
   source = "./modules/terraform-aws-elb/modules/elb_attachment/"
   number_of_instances = var.number_of_instances
   #instances = element(var.instances, count.index)
-  instances = ["i-04e66754807605bd3","i-04e66754807605bd3"]
+  instances = ["i-0d0d9733860930fa6","i-0531dfd9de44f9a14"]
 
 }
+
+
 
 ##################################################################################################################################################################
 #Autoscaling Group Creation
 ##################################################################################################################################################################
+
+
+
 module "usbank-autoscaling"{
   source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
   
 }
-
 
 #################################################################################################################################################################
 #MySQL DB Creation
