@@ -77,6 +77,30 @@ POLICY
 }
 
 
+#####################################################################################
+####  Build the Mysql Security Group
+###
+#####################################################################################
+module "mysql_security_group" {
+  source  = "./modules/terraform-aws-security-group/modules/mysql/"
+   vpc_id = aws_vpc.usbank_vpc[0].id
+
+  name = var.dbname
+ # ingress_rules = var.mysql_ingress_rules
+}
+#####################################################################################
+####  Build the App Server Security Group
+###
+#####################################################################################
+
+module "app_security_group" {
+  source  = "./modules/terraform-aws-security-group/modules/https-443/"
+  name = var.appname
+  vpc_id = data.aws_vpc.usbank_vpc.vpc_id
+ # ingress_rules = var.appserv_ingress_rules
+}
+
+
 ################################################################
 #ElB creation module
 ######################################################################
