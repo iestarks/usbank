@@ -49,10 +49,9 @@ data "aws_security_group" "this" {
   }
 }
 
-
-
-
-
+########################################################################################################################################
+##User Data for Bastian Host
+##################################################################################################################################################
 
 locals {
 
@@ -100,26 +99,19 @@ resource "aws_s3_bucket" "elb_logs" {
 }
 POLICY
 }
+#################################################################################################################################################################
+#Auto Scaling Group Creation
+##################################################################################################################################################################
 
-
-
-################################################################
-#ElB and Auto Scaling Group creation module
-######################################################################
-
-
-module "elb_http" {
-  source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
-
+module "usbank_asg" {
+  source = "./modules/terraform-aws-autoscaling/"
+     vpc_id = data.aws_vpc.usbank_vpc.id
+  ingress_rules = var.elb_ingress_rules
+  listener =  var.listeners
+  security_groups = [data.aws_security_group.this.id]
+  health_check =  var.health_check
+  subnets = data.aws_subnet_ids.private.ids
  }
-
-# module "elb_attachment"{
-#   source = "./modules/terraform-aws-elb/modules/elb_attachment/"
-#   number_of_instances = var.number_of_instances
-#   #instances = element(var.instances, count.index)
-#   instances = ["i-0d0d9733860930fa6","i-0531dfd9de44f9a14"]
-# }
-
 
 
 #################################################################################################################################################################
