@@ -5,44 +5,85 @@
 #********************************************************************************************
 
 
-
-# module "terraform-aws-vpc" {
-# source = "./modules/terraform-aws-vpc/"
-# }
-
 ##############################################################
 # Data sources to get VPC Details
 ##############################################################
 data "aws_vpc" "usbank_vpc" {
+
   filter {
     name = "tag:Name"
     values = [var.vpcname]
   }
 }
 
-##############################################################
-# Data sources to get subnets 
-##############################################################
-
-data "aws_subnet_ids" "all" {
-  vpc_id = data.aws_vpc.usbank_vpc.id
-    #vpc_id = module.terraform-aws-vpc.name
-   filter {
-    name   = "tag:10.60.3.0/24"
-    values = ["az2-pri-subnet-3"] # insert value here
+data "aws_subnet_ids" "private" { 
+    vpc_id = data.aws_vpc.usbank_vpc.id
+ tags = {
+  Name = "bankus_east-1-vpc-private-us-east-1a",
+  Name = "bankus_east-1-vpc-private-us-east-1c"
+  # insert value here
   }
 }
 
-# ######ELB Servers Security Group
+
+data "aws_subnet_ids" "public" {
+  vpc_id = data.aws_vpc.usbank_vpc.id
+ tags = {
+  Name = "bankus_east-1-vpc-public-us-east-1a"
+
+  # insert value here
+  }
+}
+
+
+data "aws_subnet_ids" "database" {
+  vpc_id = data.aws_vpc.usbank_vpc.id
+  #  filter {
+  #   name   = "tag:Name"
+     #values = ["bankus_east-1-vpc-public-us-east-1a"] # insert value here
+  tags = {
+  Name = "bankus_east-1-vpc-db-us-east-1a",
+  Name = "bankus_east-1-vpc-db-us-east-1c"  # insert value here
+  }
+}
+
 data "aws_security_group" "this" {
   vpc_id = data.aws_vpc.usbank_vpc.id
-  name   = var.appsg
-   filter {
-    name   = "tag:Name"
-    values = [var.appsg]
+  #  filter {
+  #   name   = "tag:Name"
+     #values = ["bankus_east-1-vpc-public-us-east-1a"] # insert value here
+  tags = {
+  Name = "usbank-appserv"
+  # insert value here
   }
 }
-#############################################################
+
+
+locals {
+
+    userdata = <<-USERDATA
+    #!/bin/bash
+    cat <<"__EOF__" > /home/ec2-user/.ssh/config
+    Host *
+      StrictHostKeyChecking no
+    __EOF__
+    chmod 600 /home/ec2-user/.ssh/config
+    chown ec2-user:ec2-user /home/ec2-user/.ssh/config
+  USERDATA
+
+
+ # vpc_id =  module.terraform-aws-vpc.vpc_id
+  # security_groups = module.app_security_group.security_groups
+  # private_subnets = module.terraform-aws-vpc.private_subnets
+  # database_subnets = module.terraform-aws-vpc.database_subnets
+
+}
+
+
+# module "terraform-aws-vpc" {
+# source = "./modules/terraform-aws-vpc/"
+# }
+
 
 ########################################################################################################################################
 ##Give Bucket Permission and allow access for the ELB
@@ -81,98 +122,50 @@ POLICY
 ####  Build the Mysql Security Group
 ###
 #####################################################################################
-module "mysql_security_group" {
-  source  = "./modules/terraform-aws-security-group/modules/mysql/"
-   vpc_id = aws_vpc.usbank_vpc[0].id
-
-  name = var.dbname
- # ingress_rules = var.mysql_ingress_rules
-}
+# module "mysql_security_group" {
+#   source  = "./modules/terraform-aws-security-group/modules/mysql/"
+#   vpc_id = data.aws_vpc.usbank_vpc.id
+#   name = var.dbname
+#  # ingress_rules = var.mysql_ingress_rules
+# }
 #####################################################################################
 ####  Build the App Server Security Group
 ###
 #####################################################################################
 
-module "app_security_group" {
-  source  = "./modules/terraform-aws-security-group/modules/https-443/"
-  name = var.appname
-  vpc_id = data.aws_vpc.usbank_vpc.vpc_id
- # ingress_rules = var.appserv_ingress_rules
-}
+# module "app_security_group" {
+#   source  = "./modules/terraform-aws-security-group/modules/https-443/"
+#   name = var.appname
+#   vpc_id = data.aws_vpc.usbank_vpc.id
+#  # ingress_rules = var.appserv_ingress_rules
+# }
+
+
+# module "elb_security_group" {
+#   source  = "./modules/terraform-aws-security-group/modules/http-80/"
+#   vpc_id = data.aws_vpc.usbank_vpc.id
+#   name = var.elbsgname
+#  # ingress_rules = var.appserv_ingress_rules
+# }
 
 
 ################################################################
-#ElB creation module
+#ElB and Auto Scaling Group creation module
 ######################################################################
 
 
 module "elb_http" {
-  source = "./modules/terraform-aws-elb/modules/elb/"
-
-   security_groups = [data.aws_security_group.this.id]
-   #security_groups =  data.aws_vpc.usbank_vpc.id
-   subnets = data.aws_subnet_ids.all.ids
-   internal   = var.listener
-   vpc_id = data.aws_vpc.usbank_vpc.id
-      # vpc_id = module.terraform-aws-vpc.name
-   name = var.elbname
-   ingress_rules =  var.elb_ingress_rules
-
-
-
-listener = [
-    {
-      instance_port     = "80"
-      instance_protocol = "HTTP"
-      lb_port           = "80"
-      lb_protocol       = "HTTP"
-    },
-    {
-      instance_port     = "8080"
-      instance_protocol = "http"
-      lb_port           = "8080"
-      lb_protocol       = "http"
-      #ssl_certificate_id = "arn:aws:acm:eu-west-1:235367859451:certificate/6c270328-2cd5-4b2d-8dfd-ae8d0004ad31"
-    },
-  ]
-
-
-
-   health_check = {
-
-    healthy_threshold   = lookup(var.health_check, "healthy_threshold")
-    unhealthy_threshold = lookup(var.health_check, "unhealthy_threshold")
-    target              = lookup(var.health_check, "target")
-    interval            = lookup(var.health_check, "interval")
-    timeout             = lookup(var.health_check, "timeout")
-  }
-
-  access_logs = {
-    bucket = "usbank-bucket"
-     interval      = 60
-  }
-}
-
-module "elb_attachment"{
-  source = "./modules/terraform-aws-elb/modules/elb_attachment/"
-  number_of_instances = var.number_of_instances
-  #instances = element(var.instances, count.index)
-  instances = ["i-0d0d9733860930fa6","i-0531dfd9de44f9a14"]
-
-}
-
-
-
-##################################################################################################################################################################
-#Autoscaling Group Creation
-##################################################################################################################################################################
-
-
-
-module "usbank-autoscaling"{
   source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
-  
-}
+ }
+
+# module "elb_attachment"{
+#   source = "./modules/terraform-aws-elb/modules/elb_attachment/"
+#   number_of_instances = var.number_of_instances
+#   #instances = element(var.instances, count.index)
+#   instances = ["i-0d0d9733860930fa6","i-0531dfd9de44f9a14"]
+# }
+
+
 
 #################################################################################################################################################################
 #MySQL DB Creation
@@ -190,8 +183,10 @@ instance_class = var.instance_class
 engine =  var.engine 
 maintenance_window = var.maintenance_window
 identifier =var.identifier
-vpc_security_group_ids = [data.aws_vpc.usbank_vpc.id]
+vpc_security_group_ids = [data.aws_security_group.this.id]
 allocated_storage = var.allocated_storage
+major_engine_version = var.major_engine_version
+subnet_ids = data.aws_subnet_ids.database.ids
 }
 
 

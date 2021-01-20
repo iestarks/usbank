@@ -3,6 +3,38 @@
 #   description = "Workspace area of the build"
 #   type        = string
 # }
+variable "private_subnet_tags" {
+  description = "Additional tags for the private subnets"
+  type        = list(string)
+  default = ["bankus_east-1-vpc-private-us-east-1a","bankus_east-1-vpc-private-us-east-1c"]
+}
+
+variable "private_subnet_suffix" {
+  description = "Suffix to append to private subnets name"
+  type        = string
+  default     = "private"
+}
+
+variable "private_subnets" {
+  description = "A list of private subnets inside the VPC"
+  type        = list(string)
+  default     = ["10.60.1.0/24","10.60.3.0/24"]
+}
+
+variable "database_subnets" {
+  description = "A list of database subnets"
+  type        = list(string)
+  default     = ["10.60.2.0/24","10.60.4.0/24"]
+}
+
+
+variable "appname" {
+  description = "App server name to be used on all the resources as identifier"
+  type        = string
+  default     = "usbank-appserv"
+}
+
+
 
 variable "env" {
   description = "Workspace area of the build"
@@ -35,11 +67,24 @@ variable "create_lc" {
   default     = true
 }
 
-variable "listener" {
-  description = "Whether to listen internally or externally at the lb"
-  type        = bool
-  default     = false
-}
+
+# variable "listener" {
+#   description = "A health check block"
+#   type        = list(object({
+#   default = {"instance_port" = "80","instance_protocol" = "HTTP","lb_port" = "80","lb_protocol" = "HTTP"}
+# }
+
+# variable "listeners" {
+#   description = "A list of listener configurations for the ELB."
+#   type = list(object({
+#     lb_port: number
+#     lb_protocol: string
+#     instance_port: number
+#     instance_protocol: string
+#     ssl_certificate_id: string
+#   }))
+# }
+
 
 
 variable "elbname" {
@@ -47,6 +92,14 @@ variable "elbname" {
   type        = string
   default = "http-80-elb"
 }
+
+
+variable "elbsgname" {
+  description = "ELB Security Group Name"
+  type        = string
+  default = "http-80-sg"
+}
+
 
 
 variable "appsg" {
@@ -124,8 +177,9 @@ variable "vpc_zone_identifier" {
 variable "azs" {
   description = "A list of availability zones names or ids in the region"
   type        = list(string)
-  default     = []
+  default     = ["us-east-1a","us-east-1c"]
 }
+
 
 variable "cidr" {
   description = "The CIDR block for the VPC. Default value is a valid CIDR, but not acceptable by AWS and should be overridden"
@@ -181,17 +235,17 @@ variable "public_subnets" {
   default     = ["10.60.0.0/24"]
 }
 
-variable "private_subnets" {
-  description = "A list of private subnets inside the VPC"
-  type        = list(string)
-  default     = ["10.60.1.0/24","10.60.3.0/24","10.60.5.0/24"]
-}
+# variable "private_subnets" {
+#   description = "A list of private subnets inside the VPC"
+#   type        = list(string)
+#   default     = ["10.60.1.0/24","10.60.3.0/24","10.60.5.0/24"]
+# }
 
-variable "database_subnets" {
-  description = "A list of database subnets"
-  type        = list(string)
-  default     = ["10.60.2.0/24","10.60.4.0/24","10.60.6.0/24"]
-}
+# variable "database_subnets" {
+#   description = "A list of database subnets"
+#   type        = list(string)
+#   default     = ["10.60.2.0/24","10.60.4.0/24","10.60.6.0/24"]
+# }
 # variable "vpc_zone_identifier" {
 #   description = "A list of subnet IDs to launch resources in"
 #   type        = list(string)
@@ -449,13 +503,16 @@ variable "db_subnet_group_name" {
 variable "parameter_group_description" {
   description = "Description of the DB parameter group to create"
   type        = string
-  default     = ""
+  default     = "mysql5.7"
 }
+
+
+
 
 variable "parameter_group_name" {
   description = "Name of the DB parameter group to associate or create"
   type        = string
-  default     = ""
+  default     = "mysql5.7"
 }
 
 variable "option_group_name" {
@@ -566,6 +623,8 @@ variable "tags" {
   default     = {}
 }
 
+
+
 # DB subnet group
 variable "subnet_ids" {
   description = "A list of VPC subnet IDs"
@@ -596,7 +655,7 @@ variable "option_group_description" {
 variable "major_engine_version" {
   description = "Specifies the major version of the engine that this option group should be associated with"
   type        = string
-  default     = ""
+  default     = "5.7"
 }
 
 variable "options" {
@@ -665,6 +724,13 @@ variable "option_group_timeouts" {
   }
 }
 
+variable "internal" {
+  description = "If true, ELB will be an internal ELB"
+  type        = bool
+  default    =  "false"
+}
+
+
 variable "deletion_protection" {
   description = "The database can't be deleted when this value is set to true."
   type        = bool
@@ -705,4 +771,10 @@ variable "delete_automated_backups" {
   description = "Specifies whether to remove automated backups immediately after the DB instance is deleted"
   type        = bool
   default     = true
+}
+
+variable "db_parameter_group" {
+  description = "Specifies the db_parameter_group for the DB instance"
+  type        = string
+  default     = "mysql5.7"
 }
