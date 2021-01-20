@@ -186,7 +186,7 @@ identifier =var.identifier
 vpc_security_group_ids = [data.aws_security_group.this.id]
 allocated_storage = var.allocated_storage
 major_engine_version = var.major_engine_version
-subnet_ids = data.aws_subnet_ids.database.ids
+subnet_ids = [data.aws_subnet.database.id]
 }
 
 

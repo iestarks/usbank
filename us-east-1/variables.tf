@@ -467,7 +467,7 @@ variable "instance_class" {
 variable "dbname" {
   description = "The DB name to create. If omitted, no database is created initially"
   type        = string
-  default     = ""
+  default     = "usbank_mysql"
 }
 
 variable "username" {
