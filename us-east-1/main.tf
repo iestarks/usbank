@@ -4,7 +4,11 @@
 ## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
 #********************************************************************************************
 
+locals{
+    subnet_ids_string = join(",", data.aws_subnet_ids.database.ids)
+  subnet_ids_list = split(",", local.subnet_ids_string)
 
+}
 ##############################################################
 # Data sources to get VPC Details
 ##############################################################
@@ -16,35 +20,22 @@ data "aws_vpc" "usbank_vpc" {
   }
 }
 
-data "aws_subnet_ids" "private" { 
-    vpc_id = data.aws_vpc.usbank_vpc.id
- tags = {
-  Name = "bankus_east-1-vpc-private-us-east-1a",
-  Name = "bankus_east-1-vpc-private-us-east-1c"
-  # insert value here
-  }
-}
-
-
-data "aws_subnet_ids" "public" {
-  vpc_id = data.aws_vpc.usbank_vpc.id
- tags = {
-  Name = "bankus_east-1-vpc-public-us-east-1a"
-
-  # insert value here
-  }
-}
-
-
 data "aws_subnet_ids" "database" {
   vpc_id = data.aws_vpc.usbank_vpc.id
-  #  filter {
-  #   name   = "tag:Name"
-     #values = ["bankus_east-1-vpc-public-us-east-1a"] # insert value here
-  tags = {
-  Name = "bankus_east-1-vpc-db-us-east-1a",
-  Name = "bankus_east-1-vpc-db-us-east-1c"  # insert value here
-  }
+ tags = {
+    Name = "bankus_east-1-vpc-public-*"
+ }
+
+  # tags = {
+  # Name = "bankus_east-1-vpc-db-us-east-1a",
+  # Name = "bankus_east-1-vpc-db-us-east-1c",  # insert value here
+
+}
+
+data "aws_subnet" "database" {
+  vpc_id = data.aws_vpc.usbank_vpc.id
+  count = length(data.aws_subnet_ids.database.ids)
+  id    = local.subnet_ids_list[count.index]
 }
 
 data "aws_security_group" "this" {
@@ -59,6 +50,10 @@ data "aws_security_group" "this" {
 }
 
 
+
+
+
+
 locals {
 
     userdata = <<-USERDATA
@@ -70,19 +65,8 @@ locals {
     chmod 600 /home/ec2-user/.ssh/config
     chown ec2-user:ec2-user /home/ec2-user/.ssh/config
   USERDATA
-
-
- # vpc_id =  module.terraform-aws-vpc.vpc_id
-  # security_groups = module.app_security_group.security_groups
-  # private_subnets = module.terraform-aws-vpc.private_subnets
-  # database_subnets = module.terraform-aws-vpc.database_subnets
-
 }
 
-
-# module "terraform-aws-vpc" {
-# source = "./modules/terraform-aws-vpc/"
-# }
 
 
 ########################################################################################################################################
@@ -118,36 +102,6 @@ POLICY
 }
 
 
-#####################################################################################
-####  Build the Mysql Security Group
-###
-#####################################################################################
-# module "mysql_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/mysql/"
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#   name = var.dbname
-#  # ingress_rules = var.mysql_ingress_rules
-# }
-#####################################################################################
-####  Build the App Server Security Group
-###
-#####################################################################################
-
-# module "app_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/https-443/"
-#   name = var.appname
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#  # ingress_rules = var.appserv_ingress_rules
-# }
-
-
-# module "elb_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/http-80/"
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#   name = var.elbsgname
-#  # ingress_rules = var.appserv_ingress_rules
-# }
-
 
 ################################################################
 #ElB and Auto Scaling Group creation module
@@ -156,6 +110,7 @@ POLICY
 
 module "elb_http" {
   source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
+
  }
 
 # module "elb_attachment"{
@@ -186,7 +141,8 @@ identifier =var.identifier
 vpc_security_group_ids = [data.aws_security_group.this.id]
 allocated_storage = var.allocated_storage
 major_engine_version = var.major_engine_version
-subnet_ids = [data.aws_subnet.database.id]
+subnet_ids = data.aws_subnet_ids.database.ids
+
 }
 
 
