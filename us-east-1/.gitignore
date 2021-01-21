@@ -41,3 +41,4 @@ terraform.rc./modules/terraform-aws-vpc/.terraform/providers/registry.terraform.
 .terraform.lock.hcl
 
 ansiblekey.pem
+*.pem
