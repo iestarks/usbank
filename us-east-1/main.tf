@@ -103,7 +103,6 @@ POLICY
 #Auto Scaling Group Creation
 ##################################################################################################################################################################
 
-<<<<<<< HEAD
 
 #####################################################################################
 ####  Build the Mysql Security Group
@@ -147,17 +146,6 @@ module "usbank_alb" {
 module "usbank-asg"{
   source = "./modules/terraform-aws-autoscaling/"
 }
-=======
-module "usbank_asg" {
-  source = "./modules/terraform-aws-autoscaling/"
-     vpc_id = data.aws_vpc.usbank_vpc.id
-  ingress_rules = var.elb_ingress_rules
-  listener =  var.listeners
-  security_groups = [data.aws_security_group.this.id]
-  health_check =  var.health_check
-  subnets = data.aws_subnet_ids.private.ids
- }
->>>>>>> e6c745a5f077be3a29226acea3c241f2bcf211a9
 
 
 #################################################################################################################################################################
@@ -179,12 +167,7 @@ identifier =var.identifier
 vpc_security_group_ids = [data.aws_security_group.this.id]
 allocated_storage = var.allocated_storage
 major_engine_version = var.major_engine_version
-<<<<<<< HEAD
 subnet_ids = [data.aws_subnet_ids.database.id]
-=======
-subnet_ids = data.aws_subnet_ids.database.ids
-
->>>>>>> e6c745a5f077be3a29226acea3c241f2bcf211a9
 }
 
 
