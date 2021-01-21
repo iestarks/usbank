@@ -150,21 +150,16 @@ POLICY
 
 
 ################################################################
-#ElB and Auto Scaling Group creation module
+#AlB and Auto Scaling Group creation module
 ######################################################################
 
+module "usbank_alb" {
+  source = "./modules/terraform-aws-alb/"
+}
 
-module "elb_http" {
-  source = "./modules/terraform-aws-autoscaling/examples/asg_elb/"
- }
-
-# module "elb_attachment"{
-#   source = "./modules/terraform-aws-elb/modules/elb_attachment/"
-#   number_of_instances = var.number_of_instances
-#   #instances = element(var.instances, count.index)
-#   instances = ["i-0d0d9733860930fa6","i-0531dfd9de44f9a14"]
-# }
-
+module "usbank-asg"{
+  source = "./modules/terraform-aws-autoscaling/"
+}
 
 
 #################################################################################################################################################################
@@ -186,7 +181,7 @@ identifier =var.identifier
 vpc_security_group_ids = [data.aws_security_group.this.id]
 allocated_storage = var.allocated_storage
 major_engine_version = var.major_engine_version
-subnet_ids = [data.aws_subnet.database.id]
+subnet_ids = [data.aws_subnet_ids.database.id]
 }
 
 
