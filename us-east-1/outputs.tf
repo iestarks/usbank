@@ -101,24 +101,16 @@ output "this_security_group_id" {
 #   value       = module.sg.this_security_group_owner_id
 # }
 
-<<<<<<< HEAD
 output "this_security_group_name" {
   description = "The name of the security group"
   value       = data.aws_security_group.this.id
 }
-=======
-# output "this_security_group_name" {
-#   description = "The name of the security group"
-#   value       = module.sg.this_security_group_name
-# }
->>>>>>> e6c745a5f077be3a29226acea3c241f2bcf211a9
 
 # output "this_security_group_description" {
 #   description = "The description of the security group"
 #   value       = module.sg.this_security_group_description
 # }
 
-<<<<<<< HEAD
 
 
 ############################################################
@@ -184,9 +176,3 @@ output "target_group_names" {
   description = "Name of the target group. Useful for passing to your CodeDeploy Deployment Group."
   value       = module.usbank_alb.target_group_names
 }
-=======
- output "aws_subnet" {
-  description = "The description of the security group"
-  value       = data.aws_subnet.database.*.id
-}
->>>>>>> e6c745a5f077be3a29226acea3c241f2bcf211a9

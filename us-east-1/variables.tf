@@ -68,12 +68,12 @@ variable "create_lc" {
 }
 
 
-variable "listeners" {
-  description = "A health check block"
-  type        = list(object({
-  default = {"instance_port" = "80","instance_protocol" = "HTTP","lb_portb" = "80","lb_protocol" = "HTTP"}
-  }))
-}
+# variable "listeners" {
+#   description = "A health check block"
+#   type        = list(object({
+#   default = {"instance_port" = "80","instance_protocol" = "HTTP","lb_portb" = "80","lb_protocol" = "HTTP"}
+#   }))
+# }
 
 
 
