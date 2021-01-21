@@ -4,7 +4,11 @@
 ## MySQL DB Instance, ELB, IGW, NATGW, Bastain Host, 2 Public Subnets, 2 Private Subnets
 #********************************************************************************************
 
+locals{
+    subnet_ids_string = join(",", data.aws_subnet_ids.database.ids)
+  subnet_ids_list = split(",", local.subnet_ids_string)
 
+}
 ##############################################################
 # Data sources to get VPC Details
 ##############################################################
@@ -16,35 +20,22 @@ data "aws_vpc" "usbank_vpc" {
   }
 }
 
-data "aws_subnet_ids" "private" { 
-    vpc_id = data.aws_vpc.usbank_vpc.id
- tags = {
-  Name = "bankus_east-1-vpc-private-us-east-1a",
-  Name = "bankus_east-1-vpc-private-us-east-1c"
-  # insert value here
-  }
-}
-
-
-data "aws_subnet_ids" "public" {
-  vpc_id = data.aws_vpc.usbank_vpc.id
- tags = {
-  Name = "bankus_east-1-vpc-public-us-east-1a"
-
-  # insert value here
-  }
-}
-
-
 data "aws_subnet_ids" "database" {
   vpc_id = data.aws_vpc.usbank_vpc.id
-  #  filter {
-  #   name   = "tag:Name"
-     #values = ["bankus_east-1-vpc-public-us-east-1a"] # insert value here
-  tags = {
-  Name = "bankus_east-1-vpc-db-us-east-1a",
-  Name = "bankus_east-1-vpc-db-us-east-1c"  # insert value here
-  }
+ tags = {
+    Name = "bankus_east-1-vpc-public-*"
+ }
+
+  # tags = {
+  # Name = "bankus_east-1-vpc-db-us-east-1a",
+  # Name = "bankus_east-1-vpc-db-us-east-1c",  # insert value here
+
+}
+
+data "aws_subnet" "database" {
+  vpc_id = data.aws_vpc.usbank_vpc.id
+  count = length(data.aws_subnet_ids.database.ids)
+  id    = local.subnet_ids_list[count.index]
 }
 
 data "aws_security_group" "this" {
@@ -58,6 +49,9 @@ data "aws_security_group" "this" {
   }
 }
 
+########################################################################################################################################
+##User Data for Bastian Host
+##################################################################################################################################################
 
 locals {
 
@@ -70,19 +64,8 @@ locals {
     chmod 600 /home/ec2-user/.ssh/config
     chown ec2-user:ec2-user /home/ec2-user/.ssh/config
   USERDATA
-
-
- # vpc_id =  module.terraform-aws-vpc.vpc_id
-  # security_groups = module.app_security_group.security_groups
-  # private_subnets = module.terraform-aws-vpc.private_subnets
-  # database_subnets = module.terraform-aws-vpc.database_subnets
-
 }
 
-
-# module "terraform-aws-vpc" {
-# source = "./modules/terraform-aws-vpc/"
-# }
 
 
 ########################################################################################################################################
@@ -116,7 +99,11 @@ resource "aws_s3_bucket" "elb_logs" {
 }
 POLICY
 }
+#################################################################################################################################################################
+#Auto Scaling Group Creation
+##################################################################################################################################################################
 
+<<<<<<< HEAD
 
 #####################################################################################
 ####  Build the Mysql Security Group
@@ -160,6 +147,17 @@ module "usbank_alb" {
 module "usbank-asg"{
   source = "./modules/terraform-aws-autoscaling/"
 }
+=======
+module "usbank_asg" {
+  source = "./modules/terraform-aws-autoscaling/"
+     vpc_id = data.aws_vpc.usbank_vpc.id
+  ingress_rules = var.elb_ingress_rules
+  listener =  var.listeners
+  security_groups = [data.aws_security_group.this.id]
+  health_check =  var.health_check
+  subnets = data.aws_subnet_ids.private.ids
+ }
+>>>>>>> e6c745a5f077be3a29226acea3c241f2bcf211a9
 
 
 #################################################################################################################################################################
@@ -181,7 +179,12 @@ identifier =var.identifier
 vpc_security_group_ids = [data.aws_security_group.this.id]
 allocated_storage = var.allocated_storage
 major_engine_version = var.major_engine_version
+<<<<<<< HEAD
 subnet_ids = [data.aws_subnet_ids.database.id]
+=======
+subnet_ids = data.aws_subnet_ids.database.ids
+
+>>>>>>> e6c745a5f077be3a29226acea3c241f2bcf211a9
 }
 
 

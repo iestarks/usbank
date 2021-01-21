@@ -68,22 +68,12 @@ variable "create_lc" {
 }
 
 
-# variable "listener" {
-#   description = "A health check block"
-#   type        = list(object({
-#   default = {"instance_port" = "80","instance_protocol" = "HTTP","lb_port" = "80","lb_protocol" = "HTTP"}
-# }
-
-# variable "listeners" {
-#   description = "A list of listener configurations for the ELB."
-#   type = list(object({
-#     lb_port: number
-#     lb_protocol: string
-#     instance_port: number
-#     instance_protocol: string
-#     ssl_certificate_id: string
-#   }))
-# }
+variable "listeners" {
+  description = "A health check block"
+  type        = list(object({
+  default = {"instance_port" = "80","instance_protocol" = "HTTP","lb_portb" = "80","lb_protocol" = "HTTP"}
+  }))
+}
 
 
 
