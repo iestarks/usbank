@@ -27,7 +27,7 @@ steps:
   inputs:
     provider: 'aws'
     command: 'init'
-    backendServiceAWS: 'Terraform-app-aws-connection'
+    backendServiceAWS: 'usbank_service_connection_tf'
     backendAWSBucketName: 'usbank-bucket'
     backendAWSKey: 'terraform.tfstate'
 
