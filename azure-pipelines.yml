@@ -1,10 +1,10 @@
-# Starter pipeline
+
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
 trigger:
-- main
+- stage
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -17,3 +17,22 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
+
+# Starter pipeline
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: '0.12.3'
+
+- task: TerraformTaskV1@0
+  inputs:
+    provider: 'aws'
+    command: 'init'
+    backendServiceAWS: 'Terraform-app-aws-connection'
+    backendAWSBucketName: 'usbank-bucket'
+    backendAWSKey: 'terraform.tfstate'
+
+- task: TerraformTaskV1@0
+  inputs:
+    provider: 'aws'
+    command: 'plan'
+    environmentServiceNameAWS: 'Terraform-app-aws-connection'
