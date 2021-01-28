@@ -75,19 +75,19 @@ module "usbank-bastian"{
 
 module "db" {
 source = "./modules/terraform-aws-rds/"
-engine_version = var.engine_version
-backup_window = var.backup_window
-username = var.username
-port =  var.port
-password =  var.password
-instance_class = var.instance_class 
-engine =  var.engine 
-maintenance_window = var.maintenance_window
-identifier =var.identifier
-vpc_security_group_ids = [data.aws_security_group.this.id]
-allocated_storage = var.allocated_storage
-major_engine_version = var.major_engine_version
-subnet_ids = [data.aws_subnet_ids.database.id]
+# engine_version = var.engine_version
+# backup_window = var.backup_window
+# username = var.username
+# port =  var.port
+# password =  var.password
+# instance_class = var.instance_class 
+# engine =  var.engine 
+# maintenance_window = var.maintenance_window
+# identifier =var.identifier
+# vpc_security_group_ids = [data.aws_security_group.this.id]
+# allocated_storage = var.allocated_storage
+# major_engine_version = var.major_engine_version
+# subnet_ids = [data.aws_subnet_ids.database.id]
 }
 
 
