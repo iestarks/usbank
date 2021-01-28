@@ -768,3 +768,18 @@ variable "db_parameter_group" {
   type        = string
   default     = "mysql5.7"
 }
+
+
+
+# variable "target_group_tags" {
+#   description = "A map of tags to add to all target groups"
+#   type        = map(string)
+#   default     = {"Name" = "ALB-tgt-grp"}
+# }
+
+
+
+# variable "target_group_arns" {
+#   description = "A list of aws_alb_target_group ARNs, for use with Application Load Balancing"
+#   type        = string
+# }

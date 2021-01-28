@@ -1,7 +1,7 @@
  terraform {
     backend "s3" {
     bucket = "usbank-bucket"
-    key    = "compute/terraform.tfstate"
+    key    = "resources/terraform.tfstate"
     region = "us-east-1"
   }
 

@@ -49,112 +49,24 @@ data "aws_security_group" "this" {
   }
 }
 
-########################################################################################################################################
-##User Data for Bastian Host
-##################################################################################################################################################
 
-locals {
+#data "aws_lb_target_group" "test" {}
 
-    userdata = <<-USERDATA
-    #!/bin/bash
-    cat <<"__EOF__" > /home/ec2-user/.ssh/config
-    Host *
-      StrictHostKeyChecking no
-    __EOF__
-    chmod 600 /home/ec2-user/.ssh/config
-    chown ec2-user:ec2-user /home/ec2-user/.ssh/config
-  USERDATA
-}
-
-
-
-########################################################################################################################################
-##Give Bucket Permission and allow access for the ELB
-##################################################################################################################################################
-
-data "aws_elb_service_account" "main" {}
-
-resource "aws_s3_bucket" "elb_logs" {
-  bucket = "usbank-elb-bucket"
-  acl    = "private"
-
-  policy = <<POLICY
-{
-  "Id": "Policy",
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "s3:PutObject"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:s3:::usbank-elb-bucket/AWSLogs/*",
-      "Principal": {
-        "AWS": [
-          "${data.aws_elb_service_account.main.arn}"
-        ]
-      }
-    }
-  ]
-}
-POLICY
-}
-#################################################################################################################################################################
-#Auto Scaling Group Creation
-##################################################################################################################################################################
-
-
-#####################################################################################
-####  Build the Mysql Security Group
-###
-#####################################################################################
-# module "mysql_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/mysql/"
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#   name = var.dbname
-#  # ingress_rules = var.mysql_ingress_rules
-# }
-#####################################################################################
-####  Build the App Server Security Group
-###
-#####################################################################################
-
-# module "app_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/https-443/"
-#   name = var.appname
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#  # ingress_rules = var.appserv_ingress_rules
-# }
-
-
-# module "elb_security_group" {
-#   source  = "./modules/terraform-aws-security-group/modules/http-80/"
-#   vpc_id = data.aws_vpc.usbank_vpc.id
-#   name = var.elbsgname
-#  # ingress_rules = var.appserv_ingress_rules
-# }
-
-
-################################################################
-#AlB and Auto Scaling Group creation module
-######################################################################
-
-module "usbank_alb" {
-  source = "./modules/terraform-aws-alb/"
-}
-#################################################################################################################################################################
+# #################################################################################################################################################################
 #AutoScaling Creation
 ##################################################################################################################################################################
 
+
 module "usbank-asg"{
-  source = "./modules/terraform-aws-autoscaling/"
+  source = "./modules/terraform-aws-autoscaling/" 
 }
+
 #################################################################################################################################################################
 #Bastian Host Creation
 ##################################################################################################################################################################
 
 module "usbank-bastian"{
-  source = "./modules/terraform-aws-bastion/
+  source = "./modules/terraform-aws-bastion/"
 }
 #################################################################################################################################################################
 #MySQL DB Creation
