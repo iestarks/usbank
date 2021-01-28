@@ -35,4 +35,4 @@ steps:
   inputs:
     provider: 'aws'
     command: 'plan'
-    environmentServiceNameAWS: 'Terraform-app-aws-connection'
+    environmentServiceNameAWS: 'usbank_service_connection_tf'
