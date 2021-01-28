@@ -21,7 +21,7 @@ steps:
 # Starter pipeline
 - task: TerraformInstaller@0
   inputs:
-    terraformVersion: '0.12.3'
+    terraformVersion: '0.14.5'
 
 - task: TerraformTaskV1@0
   inputs:
