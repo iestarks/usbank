@@ -24,15 +24,22 @@ steps:
     terraformVersion: '0.14.5'
 
 - task: TerraformTaskV1@0
+  displayName: 'Terraform Init'
   inputs:
     provider: 'aws'
     command: 'init'
-    backendServiceAWS: 'Terraform-app-aws-connection'
+    backendServiceAWS: 'usbank_service_connection_tf'
     backendAWSBucketName: 'usbank-bucket'
     backendAWSKey: 'terraform.tfstate'
 
 - task: TerraformTaskV1@0
+  displayName: 'Terraform Plan'
   inputs:
     provider: 'aws'
     command: 'plan'
-    environmentServiceNameAWS: 'Terraform-app-aws-connection'
+    environmentServiceNameAWS: 'usbank_service_connection_tf'
+- task: TerraformTaskV1@0
+  inputs:
+    provider: 'aws'
+    command: 'apply'
+    environmentServiceNameAWS: 'usbank_service_connection_tf'
