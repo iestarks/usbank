@@ -1,0 +1,6 @@
+[submodule "modules/subdirectory1/terraform-aws-alb"]
+	path = modules/subdirectory1/terraform-aws-alb
+	url = git@github.com:iestarks/terraform-aws-alb.git
+[submodule "modules/terraform-aws-alb-clone"]
+	path = modules/terraform-aws-alb-clone
+	url = git@github.com:iestarks/terraform-aws-alb.git
