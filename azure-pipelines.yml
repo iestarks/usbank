@@ -38,3 +38,8 @@ steps:
     provider: 'aws'
     command: 'plan'
     environmentServiceNameAWS: 'usbank_service_connection_tf'
+- task: TerraformTaskV1@0
+  inputs:
+    provider: 'aws'
+    command: 'apply'
+    environmentServiceNameAWS: 'usbank_service_connection_tf'
