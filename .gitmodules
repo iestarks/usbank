@@ -1,6 +1,18 @@
-[submodule "modules/subdirectory1/terraform-aws-alb"]
-	path = modules/subdirectory1/terraform-aws-alb
-	url = git@github.com:iestarks/terraform-aws-alb.git
 [submodule "modules/terraform-aws-alb-clone"]
 	path = modules/terraform-aws-alb-clone
 	url = git@github.com:iestarks/terraform-aws-alb.git
+[submodule "modules/terraform-aws-autoscaling-clone"]
+	path = modules/terraform-aws-autoscaling-clone
+	url = git@github.com:iestarks/terraform-aws-autoscaling.git
+[submodule "modules/terraform-aws-bastion-clone"]
+	path = modules/terraform-aws-bastion-clone
+	url = git@github.com:iestarks/terraform-aws-bastion.git
+[submodule "modules/terraform-aws-rds-clone"]
+	path = modules/terraform-aws-rds-clone
+	url = git@github.com:iestarks/terraform-aws-rds.git
+[submodule "modules/tterraform-aws-security-group-clone"]
+	path = modules/tterraform-aws-security-group-clone
+	url = git@github.com:iestarks/terraform-aws-security-group.git
+[submodule "modules/terraform-aws-vpc-clone"]
+	path = modules/terraform-aws-vpc-clone
+	url = git@github.com:iestarks/terraform-aws-vpc.git
