@@ -39,6 +39,7 @@ steps:
     command: 'plan'
     environmentServiceNameAWS: 'usbank_service_connection_tf'
 - task: TerraformTaskV1@0
+  displayName: 'Terraform Validate and Apply'
   inputs:
     provider: 'aws'
     command: 'apply'
